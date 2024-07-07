@@ -23,73 +23,82 @@ O download é iniciado automaticamente quando o usuário insere um link do YouTu
 # Estrutura do Código
 ### Importação das Bibliotecas
 
-`
+<code>
 import tkinter as tk
 from tkinter import messagebox, ttk
 from pytube import YouTube
 from pydub import AudioSegment
 import os
 from pathlib import Path
-`
+</code>
 
 ### Função de Callback do Progresso
 Esta função atualiza a barra de progresso durante o download do vídeo.
 
-`
+<code>
 def progress_function(stream, chunk, bytes_remaining):
     total_size = stream.filesize
     bytes_downloaded = total_size - bytes_remaining
     percentage_of_completion = (bytes_downloaded / total_size) * 100
     progress_bar['value'] = percentage_of_completion
     root.update_idletasks()
-`
+</code>
 
 ### Função para Download do Vídeo
 Esta função baixa o vídeo do YouTube e o converte para MP3, salvando o arquivo na pasta "Downloads".
 
-`
+<code>
 def download_video(url):
     save_path = Path.home() / "Downloads"
+    
     try:
         yt = YouTube(url, on_progress_callback=progress_function)
         video = yt.streams.filter(only_audio=True).first()
         download_path = video.download(output_path=save_path)
+        
         base, ext = os.path.splitext(download_path)
         new_file = base + '.mp3'
+        
         audio = AudioSegment.from_file(download_path)
         audio.export(new_file, format='mp3')
+        
         os.remove(download_path)
+        
         messagebox.showinfo("Sucesso", f"Download completo: {new_file}")
     except Exception as e:
         messagebox.showerror("Erro", str(e))
-`
+</code>
 
 ### Função para Detecção de Mudança no Campo de Entrada
 Esta função é chamada quando o conteúdo do campo de entrada muda. Se o URL não estiver vazio, a função download_video é chamada.
 
-`
+<code>
 def on_entry_change(*args):
     url = url_entry.get()
     if url:
         download_video(url)
-`
+</code>
 
 ### Criação da Interface Gráfica
 Esta parte do código cria a interface gráfica usando tkinter.
 
 # Interface gráfica
 
-`
+<code>
 root = tk.Tk()
 root.title("YouTube to MP3 Downloader")
+
 tk.Label(root, text="URL do YouTube:").pack(pady=5)
 url_entry = tk.Entry(root, width=50)
 url_entry.pack(pady=5)
+
 progress_bar = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate")
 progress_bar.pack(pady=10)
+
 url_entry.bind("<Return>", lambda event: on_entry_change())
+
 root.mainloop()
-`
+</code>
 
 # Como Usar
 1. Execute o script Python.
