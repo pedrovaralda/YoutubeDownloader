@@ -82,8 +82,8 @@ def on_entry_change(*args):
 ### Criação da Interface Gráfica
 Esta parte do código cria a interface gráfica usando tkinter.
 
-<code>
 # Interface gráfica
+<code>
 root = tk.Tk()
 root.title("YouTube to MP3 Downloader")
 
