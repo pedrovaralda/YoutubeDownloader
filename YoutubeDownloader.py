@@ -1,34 +1,37 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-from pytube import YouTube
 from pydub import AudioSegment
 import os
 from pathlib import Path
+from yt_dlp import YoutubeDL
 
-def progress_function(stream, chunk, bytes_remaining):
-    total_size = stream.filesize
-    bytes_downloaded = total_size - bytes_remaining
-    percentage_of_completion = (bytes_downloaded / total_size) * 100
-    progress_bar['value'] = percentage_of_completion
-    root.update_idletasks()
+def progress_hook(d):
+    if d['status'] == 'downloading':
+        total_bytes = d.get('total_bytes')
+        downloaded_bytes = d.get('downloaded_bytes')
+        percentage_of_completion = (downloaded_bytes / total_bytes) * 100
+        progress_bar['value'] = percentage_of_completion
+        root.update_idletasks()
 
 def download_video(url):
     save_path = Path.home() / "Downloads"
-    
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': str(save_path / '%(title)s.%(ext)s'),
+        'progress_hooks': [progress_hook],
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+
     try:
-        yt = YouTube(url, on_progress_callback=progress_function)
-        video = yt.streams.filter(only_audio=True).first()
-        download_path = video.download(output_path=save_path)
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
         
-        base, ext = os.path.splitext(download_path)
-        new_file = base + '.mp3'
-        
-        audio = AudioSegment.from_file(download_path)
-        audio.export(new_file, format='mp3')
-        
-        os.remove(download_path)
-        
-        messagebox.showinfo("Sucesso", f"Download completo: {new_file}")
+        messagebox.showinfo("Sucesso", "Download completo!")
     except Exception as e:
         messagebox.showerror("Erro", str(e))
 
